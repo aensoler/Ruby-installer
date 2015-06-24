@@ -83,13 +83,32 @@ if [ -z `which rbenv` ]; then
 	## Reload Bash
 	export PATH="$HOME/.rbenv/bin:$PATH"
 	eval "$(rbenv init -)"
-
-	# Install rbenv plugin ruby-build ==> provides the "install" command.
-	git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build
-
-	# Install rbenv plugin rbenv-gem-rehash
-	git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+else
+	echoBlue "Updating rbenv..."
+	cd "$(rbenv root)" && git pull
 fi
+
+cd "$(rbenv root)"/plugins/
+if [ -d ruby-build ]; then
+	echoBlue "Updating rbenv plugin: ruby-build..."
+	cd ruby-build && git pull
+else
+	# Install rbenv plugin ruby-build ==> provides the "install" command.
+	echoBlue "Installing rbenv plugin: ruby-build..."
+	git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build
+fi
+
+cd "$(rbenv root)"/plugins/
+if [ -d rbenv-gem-rehash ]; then
+	echoBlue "Updating rbenv plugin: rbenv-gem-rehash..."
+	cd rbenv-gem-rehash && git pull
+else
+	# Install rbenv plugin rbenv-gem-rehash
+	echoBlue "Installing rbenv plugin: rbenv-gem-rehash..."
+	git clone https://github.com/sstephenson/rbenv-gem-rehash.git $HOME/.rbenv/plugins/rbenv-gem-rehash
+fi
+
+cd $HOME
 
 
 # Install ruby v2.2.2
