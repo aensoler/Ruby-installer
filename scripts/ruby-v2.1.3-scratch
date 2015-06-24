@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# @file ruby-v2.1.3-scratch
+
+BASH_FILE=.bashrc
+CMD_INSTALL="sudo aptitude install"
+CMD_UPDATE="sudo aptitude update"
+
+echoBlue() {
+	echo -e "\n\033[01;36m$*\033[00m\n"
+}
+
+cd $HOME
+
+echoBlue "Updating system repositories..."
+$CMD_UPDATE
+
+$CMD_INSTALL git-core -y
+
+# Install rbenv
+echoBlue "Installing rbenv..."
+git clone https://github.com/sstephenson/rbenv.git $HOME/.rbenv
+
+echo '' >> $HOME/$BASH_FILE
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> $HOME/$BASH_FILE
+echo 'eval "$(rbenv init -)"' >> $HOME/$BASH_FILE
+
+## Reload Bash
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
+
+# Install rbenv plugin ruby-build ==> provides the "install" command.
+git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build
+
+# Install rbenv plugin rbenv-gem-rehash
+git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+
+# Installing ruby's dependencies
+echoBlue "Installing ruby's dependencies..."
+#$CMD_INSTALL build-essential libssl-dev libcurl4-openssl-dev libreadline-dev sqlite3 libsqlite3-dev -y
+$CMD_INSTALL build-essential libcurl4-openssl-dev sqlite3 libsqlite3-dev -y
+
+# Install ruby v2.1.3
+echoBlue "Installing ruby v2.1.3..."
+rbenv install 2.1.3 -k
+
+rbenv global 2.1.3
+
+rbenv rehash
+
+echoBlue "The installation was successful."
