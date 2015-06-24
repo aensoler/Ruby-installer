@@ -38,6 +38,18 @@ getDistro() {
 	return 0
 }
 
+getDownloader() {
+	if [ -n `which curl` ]; then
+		echo "curl -sSL"
+	elif [ -n `which wget` ]; then
+		echo "wget -qO-"
+	else
+		return 1
+	fi
+
+	return 0
+}
+
 DISTRO=$(getDistro)
 
 # Updating system repositories
@@ -106,7 +118,7 @@ fi
 # Install ruby v2.2.2
 echoBlue "Installing ruby v2.2.2 from Ubuntu 14.04 x86_64 build..."
 cd "$(rbenv root)"/versions/
-tar -xvJf https://github.com/aensoler/ruby-installer/raw/master/ruby-builds/ruby-v2.2.2-ubuntu-14.04-x86_64.tar.xz
+$(getDownloader) https://github.com/aensoler/ruby-installer/raw/master/ruby-builds/ruby-v2.2.2-ubuntu-14.04-x86_64.tar.xz | tar -xvJ
 
 rbenv rehash
 
