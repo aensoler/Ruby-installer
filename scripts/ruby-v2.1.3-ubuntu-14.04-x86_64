@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+# @file ruby-v2.1.3-ubuntu-14.04-x86_64
+
+BASH_FILE=.bashrc
+
+echoBlue() {
+	echo -e "\n\033[01;36m$*\033[00m\n"
+}
+
+getDistro() {
+	if [ -f /etc/lsb-release ]; then
+		echo "ubuntu"
+	elif [ -f /etc/debian_version ]; then
+		echo "debian"
+	elif [ -f /etc/fedora-release ]; then
+		echo "fedora"
+	elif [ -f /etc/redhat-release ] && [ -f /etc/redhat_version ]; then
+		echo "red hat"
+	elif [ -f /etc/redhat-release ]; then
+		echo "centos"
+	elif [ -f /etc/slackware-release ] && [ -f /etc/slackware-version ]; then
+		echo "slackware"
+	elif [ -f /etc/gentoo-release ]; then
+		echo "gentoo"
+	elif [ -f /etc/SuSE-release ] && [ -f /etc/os-release ]; then
+		echo "opensuse"
+	elif [ -f /etc/SuSE-release ]; then
+		echo "novell suse"
+	elif [ -f /etc/mandrake-release ]; then
+		echo "mandrake"
+	elif [ -f /etc/arch-release ] && [ -f /etc/os-release ]; then
+		echo "arch linux"
+	else
+		return 1
+	fi
+
+	return 0
+}
+
+DISTRO=$(getDistro)
+
+# Updating system repositories
+echoBlue "Updating system repositories..."
+case $DISTRO in
+"debian"|"ubuntu")
+	sudo apt-get update
+	;;
+"arch linux")
+	sudo pacman -Sy
+	;;
+esac
+
+# Installing building dependencies of rbenv
+echoBlue "Installing building dependencies of rbenv..."
+case $DISTRO in
+"debian"|"ubuntu")
+	sudo apt-get install git-core sqlite3 libsqlite3-dev
+	;;
+"arch linux")
+	sudo pacman -S git sqlite
+	;;
+esac
+
+
+cd $HOME
+
+# Install rbenv
+if [ -z `which rbenv` ]; then
+	echoBlue "Installing rbenv..."
+	git clone https://github.com/sstephenson/rbenv.git $HOME/.rbenv
+
+	echo '' >> $HOME/$BASH_FILE
+	echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> $HOME/$BASH_FILE
+	echo 'eval "$(rbenv init -)"' >> $HOME/$BASH_FILE
+
+	## Reload Bash
+	export PATH="$HOME/.rbenv/bin:$PATH"
+	eval "$(rbenv init -)"
+else
+	echoBlue "Updating rbenv..."
+	cd "$(rbenv root)" && git pull
+fi
+
+cd "$(rbenv root)"/plugins/
+if [ -d ruby-build ]; then
+	echoBlue "Updating rbenv plugin: ruby-build..."
+	cd ruby-build && git pull
+else
+	# Install rbenv plugin ruby-build ==> provides the "install" command.
+	echoBlue "Installing rbenv plugin: ruby-build..."
+	git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build
+fi
+
+cd "$(rbenv root)"/plugins/
+if [ -d rbenv-gem-rehash ]; then
+	echoBlue "Updating rbenv plugin: rbenv-gem-rehash..."
+	cd rbenv-gem-rehash && git pull
+else
+	# Install rbenv plugin rbenv-gem-rehash
+	echoBlue "Installing rbenv plugin: rbenv-gem-rehash..."
+	git clone https://github.com/sstephenson/rbenv-gem-rehash.git $HOME/.rbenv/plugins/rbenv-gem-rehash
+fi
+
+
+# Install ruby v2.1.3
+echoBlue "Installing ruby v2.1.3 from Ubuntu 14.04 x86_64 build..."
+cd "$(rbenv root)"/versions/
+tar -xvJf https://github.com/aensoler/ruby-installer/raw/master/ruby-builds/ruby-v2.1.3-ubuntu-14.04-x86_64.tar.xz
+
+rbenv rehash
+
+rbenv global 2.1.3
+
+echoBlue "The installation was successful."
